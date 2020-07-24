@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package test;
+
+option php_namespace = "my\\php\\namespace";
+
+import "google/api/client.proto";
+import "google/api/resource.proto";
+import "google/api/field_behavior.proto";
+
+option (google.api.resource_definition) = {
+  type: "commonresource.example.com/Something",
+  pattern: "things/{thing}"
+};
+
+service Service1 {
+    option (google.api.default_host) = "host.example.com";
+    option (google.api.oauth_scopes) =
+        "https://www.googleapis.com/auth/cloud-language,"
+        "https://www.googleapis.com/auth/cloud-platform";
+
+    rpc MethodA(Msg1) returns(Msg1);
+}
+
+message Msg1 {
+    int32 a_number = 1 [(google.api.field_behavior) = REQUIRED];
+    string a_string = 2;
+}
