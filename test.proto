@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package test;
 
-option php_namespace = "my\\php\\namespace";
+option php_namespace = "my\\php\\ns";
 
 import "google/api/client.proto";
 import "google/api/resource.proto";
@@ -13,16 +13,35 @@ option (google.api.resource_definition) = {
   pattern: "things/{thing}"
 };
 
+// Service-level comment
+// With multiple lines
+//
+// And a blank line
+//
+// or two.
 service Service1 {
     option (google.api.default_host) = "host.example.com";
     option (google.api.oauth_scopes) =
         "https://www.googleapis.com/auth/cloud-language,"
         "https://www.googleapis.com/auth/cloud-platform";
 
-    rpc MethodA(Msg1) returns(Msg1);
+    // My A method.
+    rpc MethodA(Msg1) returns(Response);
 }
 
+// Msg1 is a message,
+// here for testing over two lines of comments.
 message Msg1 {
+    // A number
+    // with two lines of doc
     int32 a_number = 1 [(google.api.field_behavior) = REQUIRED];
+
+    // A string with just one line of doc
     string a_string = 2;
+
+    bool a_bool = 3;
+
+    string another_string = 4;
 }
+
+message Response {}

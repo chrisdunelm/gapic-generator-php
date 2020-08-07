@@ -3,6 +3,7 @@
 namespace Google\Generator;
 
 use \Google\Protobuf\Internal\ServiceDescriptorProto;
+use \Google\Protobuf\Internal\SourceCodeInfo;
 use \Google\Generator\Utils\ProtoHelpers;
 use \Google\Generator\Utils\CustomOptions;
 use \Google\Generator\Utils\Helpers;
@@ -13,6 +14,7 @@ class ServiceDetails {
     public string $clientNamespace; // readonly
     public string $serviceFullName; // readonly
     public string $gapicClientClassName; // readonly
+    public string $clientVarName; // readonly
     public string $serviceName; // readonly
     public string $defaultHost; // readonly
     public int $defaultPort; // readonly
@@ -22,6 +24,7 @@ class ServiceDetails {
     public string $restConfigFilename; // readonly
     public string $clientConfigFilename; // readonly
     public Vector $methods; // readonly
+    public Vector $docLines; // readonly
 
     public function __construct(ProtoCatalog $catalog, string $namespace, string $package, ServiceDescriptorProto $desc)
     {
@@ -29,6 +32,7 @@ class ServiceDetails {
         $this->clientNamespace = "{$namespace}\Gapic";
         $this->serviceFullName = "{$namespace}.{$desc->getName()}";
         $this->gapicClientClassName = "{$desc->getName()}GapicClient";
+        $this->clientVarName = Helpers::ToCamelCase("{$desc->getName()}ServiceClient");
         $this->serviceName = "{$package}.{$desc->getName()}";
         $this->defaultHost = ProtoHelpers::GetCustomOptionString($desc, CustomOptions::GOOGLE_API_DEFAULTHOST);
         $this->defaultPort = 443;
@@ -39,5 +43,6 @@ class ServiceDetails {
         $this->restConfigFilename = Helpers::ToSnakeCase($desc->getName()) . '_rest_client_config.php';
         $this->clientConfigFilename = Helpers::ToSnakeCase($desc->getName()) . '_client_config.json';
         $this->methods = Vector::New($desc->getMethod())->map(fn($x) => MethodDetails::Create($this, $x));
+        $this->docLines = $desc->leadingComments;
     }
 }

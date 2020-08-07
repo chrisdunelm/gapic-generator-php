@@ -7,6 +7,7 @@ use \Google\Generator\Collections\Set;
 use \Google\Protobuf\Internal\FileDescriptorSet;
 use \Google\Protobuf\Internal\FileDescriptor;
 use \Google\Generator\Utils\ProtoHelpers;
+use \Google\Generator\Utils\SourceCodeInfoHelper;
 
 class CodeGenerator
 {
@@ -48,16 +49,19 @@ class CodeGenerator
     }
 
     // $namespace : string
-    // $fileDescs : Collection<FileDescriptorProto>
+    // $fileDescs : Vector<FileDescriptorProto>
     private static function GeneratePackage(ProtoCatalog $catalog, string $namespace, Vector $fileDescs)
     {
         foreach ($fileDescs as $fileDesc)
         {
-            foreach ($fileDesc->getService() as $service)
+            SourceCodeInfoHelper::Merge($fileDesc);
+            foreach ($fileDesc->getService() as $index => $service)
             {
                 $serviceDetails = new ServiceDetails($catalog, $namespace, $fileDesc->getPackage(), $service);
-                $ctx = SourceFileContext::Create();
+                $ctx = new SourceFileContext();
                 $code = GapicClientGenerator::Generate($ctx, $serviceDetails);
+                $code = Formatter::Format($code);
+                // file_put_contents('./genout.php', $code);
                 $filename = "";
                 yield $code;
             }

@@ -4,6 +4,6 @@ namespace Google\Generator\Collections;
 
 interface Equality
 {
-    public function hash() : int;
-    public function equals($other) : bool;
+    public function getHash() : int;
+    public function isEqualTo($other) : bool;
 }

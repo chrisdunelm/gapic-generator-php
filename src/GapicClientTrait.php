@@ -7,4 +7,5 @@ class GapicClientTrait
     public const buildClientOptions = "\0buildClientOptions";
     public const setClientOptions = "\0setClientOptions";
     public const startCall = "\0startCall";
+    public const close = "\0close";
 }

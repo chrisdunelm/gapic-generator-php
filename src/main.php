@@ -3,6 +3,17 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 error_reporting(E_ALL);
 
+// $code = Google\Generator\Formatter::Format(<<<'EOT'
+// <?php
+// $languageServiceClient = new Google\Cloud\Language\V1\LanguageServiceClient(); try { $document = new Google\Cloud\Language\V1\Document();$response = $languageServiceClient->analyzeSentiment($document);
+// } finally {
+//     $languageServiceClient->close();
+// }
+// EOT
+// );
+// print($code."\n");
+// return;
+
 use Google\Generator\CodeGenerator;
 
 $opts = getopt('', ['descriptor:', 'package:']);

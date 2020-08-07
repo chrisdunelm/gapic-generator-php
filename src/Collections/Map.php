@@ -166,4 +166,10 @@ class Map implements \IteratorAggregate, \Countable, \ArrayAccess
         }
         return Vector::New($result);
     }
+
+    public function get($key, $default)
+    {
+        [$exists, $value] = static::Apply($this->data, $key, 0, NULL);
+        return $exists ? $value : $default;
+    }
 }

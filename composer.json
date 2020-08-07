@@ -8,7 +8,8 @@
     "require": {
         "nette/php-generator": "^3.4",
         "google/protobuf": "^3.12",
-        "google/common-protos": "^1.2"
+        "google/common-protos": "^1.2",
+        "friendsofphp/php-cs-fixer": "^2.16"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.2"

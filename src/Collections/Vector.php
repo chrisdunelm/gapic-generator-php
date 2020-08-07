@@ -2,7 +2,7 @@
 
 namespace Google\Generator\Collections;
 
-class Vector implements \IteratorAggregate, \Countable, \ArrayAccess
+class Vector implements \IteratorAggregate, \Countable, \ArrayAccess, Equality
 {
     use EqualityHelper;
 
@@ -20,14 +20,18 @@ class Vector implements \IteratorAggregate, \Countable, \ArrayAccess
         throw new \Exception('Vector::New accepts a Traversable or an array only');
     }
 
-    public static function Zip(Vector $a, Vector $b) : Vector
+    public static function Zip(Vector $a, Vector $b, ?Callable $fnMap = null) : Vector
     {
         $count = min(count($a), count($b));
         $result = [];
         for ($i = 0; $i < $count; $i++) {
             $result[] = [$a[$i], $b[$i]];
         }
-        return new Vector($result);
+        $v = new Vector($result);
+        if ($fnMap) {
+            $v = $v->map(fn($x) => $fnMap($x[0], $x[1]));
+        }
+        return $v;
     }
 
     private $data;
@@ -77,21 +81,56 @@ class Vector implements \IteratorAggregate, \Countable, \ArrayAccess
         throw new \Exception('Vector is readonly');
     }
 
+    // Equality methods
+
+    public function getHash() : int
+    {
+        $hash = 1;
+        foreach ($this->data as $item) {
+            $hash *= 17;
+            $hash ^= static::Hash($item);
+        }
+        return $hash;
+    }
+
+    public function isEqualTo($other): bool
+    {
+        if (!($other instanceof Vector)) {
+            return false;
+        }
+        if (count($this) !== count($other)) {
+            return false;
+        }
+        foreach ($this->data as $key => $item) {
+            if (!static::Equal($other->data[$key], $item)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     // Normal class methods
 
-    public function append($item) : Vector
+    public function prepend($item): Vector
+    {
+        $data = $this->data;
+        array_unshift($data, $item);
+        return new Vector($data);
+    }
+
+    public function append($item): Vector
     {
         $data = $this->data;
         $data[] = $item;
         return new Vector($data);
     }
 
-    public function concat(Vector $vector) : Vector
+    public function concat(Vector $vector): Vector
     {
-        return new Vector($this->data + $vector->data);
+        return new Vector(array_merge($this->data, $vector->data));
     }
 
-    public function filter(Callable $fnPredicate) : Vector
+    public function filter(Callable $fnPredicate): Vector
     {
         $result = [];
         foreach ($this->data as $item) {
@@ -124,6 +163,11 @@ class Vector implements \IteratorAggregate, \Countable, \ArrayAccess
         return new Vector(array_merge(...$parts));
     }
 
+    public function flatten() : Vector
+    {
+        return $this->flatMap(fn($x) => $x instanceof Vector ? $x->flatten() : Vector::New([$x]));
+    }
+
     public function groupBy(Callable $fnKey, Callable $fnValue = NULL) : Map
     {
         $map = Map::New();
@@ -149,17 +193,67 @@ class Vector implements \IteratorAggregate, \Countable, \ArrayAccess
         return new Vector($data);
     }
 
-    public function any($fnPredicate) : bool
+    public function take(int $n): Vector
+    {
+        return $n >= count($this->data) ? $this : new Vector(array_slice($this->data, 0, $n));
+    }
+
+    public function takeLast(int $n): Vector
+    {
+        return $n >= count($this->data) ? $this : new Vector(array_slice($this->data, count($this->data) - $n));
+    }
+
+    public function skip(int $n): Vector
+    {
+        return $n === 0 ? $this : new Vector(array_slice($this->data, $n));
+    }
+
+    public function skipLast(int $n) : Vector
+    {
+        return new Vector(array_slice($this->data, 0, max(0, count($this->data) - $n)));
+    }
+
+    public function skipWhile(Callable $fnPredicate): Vector
+    {
+        for ($i = 0; $i < count($this->data); $i++) {
+            if (!$fnPredicate($this->data[$i])) {
+                return $this->skip($i);
+            }
+        }
+        return new Vector([]);
+    }
+
+    public function skipLastWhile(Callable $fnPredicate): Vector
+    {
+        for ($i = count($this->data); $i > 0; $i--) {
+            if (!$fnPredicate($this->data[$i - 1])) {
+                return $this->take($i);
+            }
+        }
+        return new Vector([]);
+    }
+
+    public function firstOrNull()
+    {
+        return count($this->data) === 0 ? null : $this->data[0];
+    }
+
+    public function last()
+    {
+        return $this->data[count($this->data) - 1];
+    }
+
+    public function any($fnPredicate = null) : bool
     {
         foreach ($this->data as $item) {
-            if ($fnPredicate($item)) {
+            if (!$fnPredicate || $fnPredicate($item)) {
                 return TRUE;
             }
         }
         return FALSE;
     }
 
-    public function join(string $joiner) : string
+    public function join(string $joiner = '') : string
     {
         return implode($joiner, $this->data);
     }
@@ -191,5 +285,20 @@ class Vector implements \IteratorAggregate, \Countable, \ArrayAccess
     public function toArray() : array
     {
         return $this->data;
+    }
+
+    public function max($defaultValue = null)
+    {
+        return count($this->data) === 0 ? $defaultValue : max($this->data);
+    }
+
+    public function __toString(): string
+    {
+        if (count($this->data) < 20) {
+            $s = $this->join(', ');
+        } else {
+            $s = $this->take(10)->join(', ') . ' ... ' . $this->takeLast(10)->join(', ');
+        }
+        return "[{$s}]";
     }
 }

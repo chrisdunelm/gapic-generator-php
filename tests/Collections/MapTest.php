@@ -16,12 +16,12 @@ class ObjEq implements Equality
         $this->id = $id;
     }
 
-    public function Hash() : int
+    public function getHash() : int
     {
         return 42;
     }
 
-    public function equals($other) : bool
+    public function isEqualTo($other) : bool
     {
         return $this->id === $other->id;
     }

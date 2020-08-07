@@ -12,7 +12,7 @@ trait EqualityHelper
             return crc32($k);
         } elseif(is_object($k)) {
             if ($k instanceof Equality) {
-                return $k->hash();
+                return $k->getHash();
             } else {
                 return spl_object_id($k);
             }
@@ -26,7 +26,7 @@ trait EqualityHelper
             // Handles int, string, object
             return TRUE;
         } elseif (is_object($a) && is_object($b) && get_class($a) === get_class($b) && $a instanceof Equality) {
-            return $a->equals($b);
+            return $a->isEqualTo($b);
         }
         return FALSE;
     }
